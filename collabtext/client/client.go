@@ -19,14 +19,14 @@ import (
 )
 
 var argType = flag.String("type", "listx", "one of watch/list/listx/counter")
-var argUrl = flag.String("url", "http://:8183", "server url")
+var argURL = flag.String("url", "http://:8183", "server url")
 
 func init() {
 	flag.Parse()
 }
 
 func main() {
-	client := &nw.Client{URL: *argUrl}
+	client := &nw.Client{URL: *argURL}
 	defer client.Close()
 
 	tx := ops.Transformed(client)
