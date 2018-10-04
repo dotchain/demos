@@ -19,7 +19,7 @@ import (
 )
 
 var argType = flag.String("type", "listx", "one of watch/list/listx/counter")
-var argURL = flag.String("url", "http://:8183", "server url")
+var argURL = flag.String("url", "http://:5000/api/", "server url")
 
 func init() {
 	flag.Parse()
@@ -53,7 +53,7 @@ func watch(client ops.Store, sync *ops.Sync, stream changes.Stream) {
 
 	value = types.S8("")
 	for {
-		ctx := getContext(30 * time.Second)
+		ctx := getContext(10 * time.Second)
 		if err := sync.Fetch(ctx, 1000); err != nil {
 			log.Fatal("Unexpected fetch error", err)
 		}
@@ -65,7 +65,7 @@ func watch(client ops.Store, sync *ops.Sync, stream changes.Stream) {
 		}
 		log.Println("Value", value)
 
-		ctx = getContext(30 * time.Second)
+		ctx = getContext(10 * time.Second)
 		if err := client.Poll(ctx, version); err != nil && ctx.Err() == nil {
 			log.Fatal("Unexpected poll error", err)
 		}
