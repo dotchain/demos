@@ -7,12 +7,11 @@ package main
 import (
 	"context"
 	"flag"
-	"github.com/dotchain/dot/changes"
 	"github.com/dotchain/dot/ops"
-	"github.com/dotchain/dot/refs"
+	"github.com/dotchain/dot/streams"
+	"github.com/dotchain/dot/streams/text"
 	"github.com/dotchain/dot/x/idgen"
 	"github.com/dotchain/dot/x/nw"
-	"github.com/dotchain/dot/x/types"
 	"log"
 	"strconv"
 	"time"
@@ -30,7 +29,7 @@ func main() {
 	defer client.Close()
 
 	tx := ops.Transformed(client)
-	stream := changes.NewStream()
+	stream := streams.New()
 
 	sync := ops.NewSync(tx, -1, stream, idgen.New)
 	defer sync.Close()
@@ -47,23 +46,24 @@ func main() {
 	}
 }
 
-func watch(client ops.Store, sync *ops.Sync, stream changes.Stream) {
-	var value changes.Value
-	var version int
+func watch(client ops.Store, sync *ops.Sync, stream streams.Stream) {
+	val := text.StreamFromString("", false)
 
-	value = types.S8("")
+	b := streams.Branch{stream, val.WithoutOwnCursor()}
+	b.Connect()
+
+	version := 0
 	for {
 		ctx := getContext(10 * time.Second)
 		if err := sync.Fetch(ctx, 1000); err != nil {
 			log.Fatal("Unexpected fetch error", err)
 		}
 
-		for cx, sx := stream.Next(); sx != nil; cx, sx = stream.Next() {
-			stream = sx
-			value = value.Apply(cx)
+		for _, v := val.Next(); v != nil; _, v = val.Next() {
+			val = v.(*text.Stream)
 			version++
 		}
-		log.Println("Value", value)
+		log.Println("Value", val.E.Text)
 
 		ctx = getContext(10 * time.Second)
 		if err := client.Poll(ctx, version); err != nil && ctx.Err() == nil {
@@ -72,45 +72,26 @@ func watch(client ops.Store, sync *ops.Sync, stream changes.Stream) {
 	}
 }
 
-func count(client ops.Store, sync *ops.Sync, stream changes.Stream) {
-	var ref refs.Ref
-	var value changes.Value
-	var version, counter int
+func count(client ops.Store, sync *ops.Sync, stream streams.Stream) {
+	val := text.StreamFromString("", false)
 
-	value, ref = types.S8(""), refs.Caret{nil, 0}
+	b := streams.Branch{stream, val.WithoutOwnCursor()}
+	b.Connect()
+
+	counter := 0
 	for {
 		ctx := getContext(30 * time.Second)
 		if err := sync.Fetch(ctx, 100); err != nil {
 			log.Fatal("Unexpected fetch error", err)
 		}
 
-		for cx, sx := stream.Next(); sx != nil; cx, sx = stream.Next() {
-			stream = sx
-			value = value.Apply(cx)
-			ref, _ = ref.Merge(cx)
-			version++
+		for _, v := val.Next(); v != nil; _, v = val.Next() {
+			val = v.(*text.Stream)
 		}
-		log.Println("Value", value)
-
-		offset := 0
-		if caret, ok := ref.(refs.Caret); ok {
-			offset = caret.Index
-		}
-
-		before := types.S8(strconv.Itoa(counter))
-		if counter == 0 {
-			before = types.S8("")
-		} else if value.Slice(offset, before.Count()) != before {
-			log.Fatal("Unexpected offset", offset, value)
-		}
+		log.Println("Value", val.E.Text)
 
 		counter++
-		after := types.S8(strconv.Itoa(counter))
-
-		ch := changes.Splice{offset, before, after}
-		stream = stream.Append(ch)
-		value = value.Apply(ch)
-		version++
+		val = val.Paste(strconv.Itoa(counter))
 
 		time.Sleep(5 * time.Second)
 	}
