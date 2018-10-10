@@ -14,6 +14,7 @@ import (
 	"github.com/dotchain/dot/x/nw"
 	"log"
 	"strconv"
+	"sync"
 	"time"
 )
 
@@ -28,7 +29,7 @@ func main() {
 	client := &nw.Client{URL: *argURL}
 	defer client.Close()
 
-	tx := ops.Transformed(client)
+	tx := ops.TransformedWithCache(client, &sync.Map{})
 	stream := streams.New()
 
 	sync := ops.NewSync(tx, -1, stream, idgen.New)
