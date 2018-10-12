@@ -7,6 +7,10 @@ demos for dot/chain project
 [![GoReportCard](https://goreportcard.com/badge/github.com/dotchain/demos)](https://goreportcard.com/report/github.com/dotchain/demos)
 
 
+## Page
+
+The demos can be checked out online [here](https://dotchain.github.io/demos/)
+
 ## CollabText
 
 Start the server:
@@ -27,4 +31,4 @@ Start a client counter:
 go run collabtext/client/client.go -type counter
 ```
 
-Multiple counters can be started.
+Multiple counters can be started illustrating how synchronization works.
