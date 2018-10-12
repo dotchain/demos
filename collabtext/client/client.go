@@ -50,7 +50,7 @@ func main() {
 func watch(client ops.Store, sync *ops.Sync, stream streams.Stream) {
 	val := text.StreamFromString("", false)
 
-	b := streams.Branch{stream, val.WithoutOwnCursor()}
+	b := streams.Branch{stream, val.WithoutOwnCursor(), false}
 	b.Connect()
 
 	version := 0
@@ -76,7 +76,7 @@ func watch(client ops.Store, sync *ops.Sync, stream streams.Stream) {
 func count(client ops.Store, sync *ops.Sync, stream streams.Stream) {
 	val := text.StreamFromString("", false)
 
-	b := streams.Branch{stream, val.WithoutOwnCursor()}
+	b := streams.Branch{stream, val.WithoutOwnCursor(), false}
 	b.Connect()
 
 	counter := 0

@@ -9,7 +9,13 @@ class CollabEditable {
         this.refresh(text, 0, 0)
         var done = (e) => this.setEditable(e);
         var refresh = (text, start, end) => this.refresh(text, start, end);
-        window.NewEditable("http://localhost:5000/api/", done, refresh)
+        var url
+        if (window.location.hostname == "localhost" && window.location.search != "?remote") {
+            url = "http://localhost:5000/api/"
+        } else {
+            url = "http://transient-env.pq3jyybpqu.us-east-1.elasticbeanstalk.com/api/"
+        }
+        window.NewEditable(url, done, refresh)
     }
     setEditable(editable) {
         this.editable = editable

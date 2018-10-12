@@ -27,7 +27,7 @@ func NewEditable(url string, done func(map[string]interface{}), refresh func(tex
 		stream := streams.New()
 		val := text.StreamFromString("", false)
 		ch := make(chan func(), 1000)
-		b := &streams.Branch{stream, val.WithoutOwnCursor()}
+		b := &streams.Branch{stream, val.WithoutOwnCursor(), false}
 		sync := ops.NewSync(tx, -1, stream, idgen.New)
 
 		defer client.Close()
