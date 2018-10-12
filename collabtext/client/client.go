@@ -14,6 +14,7 @@ import (
 	"github.com/dotchain/dot/x/nw"
 	"log"
 	"strconv"
+	"sync"
 	"time"
 )
 
@@ -28,7 +29,7 @@ func main() {
 	client := &nw.Client{URL: *argURL}
 	defer client.Close()
 
-	tx := ops.Transformed(client)
+	tx := ops.TransformedWithCache(client, &sync.Map{})
 	stream := streams.New()
 
 	sync := ops.NewSync(tx, -1, stream, idgen.New)
@@ -49,7 +50,7 @@ func main() {
 func watch(client ops.Store, sync *ops.Sync, stream streams.Stream) {
 	val := text.StreamFromString("", false)
 
-	b := streams.Branch{stream, val.WithoutOwnCursor()}
+	b := streams.Branch{stream, val.WithoutOwnCursor(), false}
 	b.Connect()
 
 	version := 0
@@ -75,7 +76,7 @@ func watch(client ops.Store, sync *ops.Sync, stream streams.Stream) {
 func count(client ops.Store, sync *ops.Sync, stream streams.Stream) {
 	val := text.StreamFromString("", false)
 
-	b := streams.Branch{stream, val.WithoutOwnCursor()}
+	b := streams.Branch{stream, val.WithoutOwnCursor(), false}
 	b.Connect()
 
 	counter := 0
