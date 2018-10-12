@@ -19,6 +19,9 @@ import (
 	"time"
 )
 
+// NewEditable asynchronously returns an interface which the browser
+// can use to send events to. The refresh method is called (also
+// asynchronously) in response to every update of local state.
 func NewEditable(url string, done func(map[string]interface{}), refresh func(text string, start, end int)) {
 	go func() {
 		client := &nw.Client{URL: url}
