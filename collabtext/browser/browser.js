@@ -13,7 +13,7 @@ class CollabEditable {
         if (window.location.hostname == "localhost" && window.location.search != "?remote") {
             url = "http://localhost:5000/api/"
         } else {
-            url = "http://transient-env.pq3jyybpqu.us-east-1.elasticbeanstalk.com/api/"
+            url = "https://etaqi6hpp8.execute-api.us-east-1.amazonaws.com/prod"
         }
         window.NewEditable(url, done, refresh)
     }
