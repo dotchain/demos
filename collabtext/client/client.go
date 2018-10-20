@@ -10,9 +10,9 @@ import (
 	"github.com/dotchain/dot/ops"
 	"github.com/dotchain/dot/streams"
 	"github.com/dotchain/dot/streams/text"
-	"github.com/dotchain/dot/x/idgen"
 	"github.com/dotchain/dot/x/nw"
 	"log"
+	"math/rand"
 	"strconv"
 	"sync"
 	"time"
@@ -30,69 +30,61 @@ func main() {
 	defer client.Close()
 
 	tx := ops.TransformedWithCache(client, &sync.Map{})
-	stream := streams.New()
-
-	sync := ops.NewSync(tx, -1, stream, idgen.New)
-	defer sync.Close()
+	conn := ops.NewConnector(-1, nil, tx, rand.Float64)
+	conn.Connect()
 
 	switch *argType {
 	case "watch":
-		watch(client, sync, stream)
+		watch(client, conn)
 	case "list":
 		list(client)
 	case "counter":
-		count(client, sync, stream)
+		count(client, conn)
 	default:
 		list(ops.Transformed(client))
 	}
+
+	conn.Disconnect()
 }
 
-func watch(client ops.Store, sync *ops.Sync, stream streams.Stream) {
+func watch(client ops.Store, conn *ops.Connector) {
 	val := text.StreamFromString("", false)
 
-	b := streams.Branch{stream, val.WithoutOwnCursor(), false}
-	b.Connect()
+	stream := val.WithoutOwnCursor()
+	streams.Connect(conn.Stream, stream)
 
-	version := 0
-	for {
-		ctx := getContext(10 * time.Second)
-		if err := sync.Fetch(ctx, 1000); err != nil {
-			log.Fatal("Unexpected fetch error", err)
-		}
-
-		for _, v := val.Next(); v != nil; _, v = val.Next() {
+	stream.Nextf("key", func() {
+		count := 0
+		for v, _ := val.Next(); v != nil; v, _ = val.Next() {
 			val = v.(*text.Stream)
-			version++
+			count++
 		}
-		log.Println("Value", val.E.Text)
+		if count > 0 {
+			log.Println("Value", val.E.Text)
+		}
+	})
 
-		ctx = getContext(10 * time.Second)
-		if err := client.Poll(ctx, version); err != nil && ctx.Err() == nil {
-			log.Fatal("Unexpected poll error", err)
-		}
+	for {
+		time.Sleep(5 * time.Second)
 	}
 }
 
-func count(client ops.Store, sync *ops.Sync, stream streams.Stream) {
+func count(client ops.Store, conn *ops.Connector) {
 	val := text.StreamFromString("", false)
 
-	b := streams.Branch{stream, val.WithoutOwnCursor(), false}
-	b.Connect()
+	stream := val.WithoutOwnCursor()
+	streams.Connect(conn.Stream, stream)
 
 	counter := 0
 	for {
-		ctx := getContext(30 * time.Second)
-		if err := sync.Fetch(ctx, 100); err != nil {
-			log.Fatal("Unexpected fetch error", err)
-		}
-
-		for _, v := val.Next(); v != nil; _, v = val.Next() {
-			val = v.(*text.Stream)
-		}
-		log.Println("Value", val.E.Text)
-
-		counter++
-		val = val.Paste(strconv.Itoa(counter))
+		conn.Async.Run(func() {
+			for v, _ := val.Next(); v != nil; v, _ = val.Next() {
+				val = v.(*text.Stream)
+			}
+			log.Println("Value", val.E.Text)
+			counter++
+			val = val.Paste(strconv.Itoa(counter))
+		})
 
 		time.Sleep(5 * time.Second)
 	}
