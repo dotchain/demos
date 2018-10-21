@@ -60,7 +60,7 @@ func watch(client ops.Store, conn *ops.Connector) {
 			count++
 		}
 		if count > 0 {
-			log.Println("Value", val.E.Text)
+			log.Println("Value", val.Value())
 		}
 	})
 
@@ -77,14 +77,12 @@ func count(client ops.Store, conn *ops.Connector) {
 
 	counter := 0
 	for {
-		conn.Async.Run(func() {
-			for v, _ := val.Next(); v != nil; v, _ = val.Next() {
-				val = v.(*text.Stream)
-			}
-			log.Println("Value", val.E.Text)
-			counter++
-			val = val.Paste(strconv.Itoa(counter))
-		})
+		for v, _ := val.Next(); v != nil; v, _ = val.Next() {
+			val = v.(*text.Stream)
+		}
+		log.Println("Value", val.Value())
+		counter++
+		val = val.Paste(strconv.Itoa(counter))
 
 		time.Sleep(5 * time.Second)
 	}

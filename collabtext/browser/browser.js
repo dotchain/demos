@@ -8,7 +8,7 @@ class CollabEditable {
         this.node = node
         this.refresh(text, 0, 0)
         var done = (e) => this.setEditable(e);
-        var refresh = (text, start, end) => this.refresh(text, start, end);
+        var refresh = (e) => this.setEditable(e);
         var url
         if (window.location.hostname == "localhost" && window.location.search != "?remote") {
             url = "http://localhost:5000/api/"
@@ -19,6 +19,9 @@ class CollabEditable {
     }
     setEditable(editable) {
         this.editable = editable
+        var start = editable.Start(true);
+        var end = editable.End(true);
+        this.refresh(editable.Value(), start[0], end[0])
     }
     Insert(ch) {
         this.editable.Insert(ch)
@@ -67,6 +70,8 @@ function init() {
             editable.Insert(e.key);
         } else if (e.code == "Backspace") {
             editable.Delete();
+        } else if (e.code == "Space") {
+            editable.Insert(" ")
         } else {
             console.log("Unknown code", e.code);
         }
