@@ -9,9 +9,11 @@ demos for dot/chain project
 
 ## Page
 
-The demos can be checked out online [here](https://dotchain.github.io/demos/)
+The demos can be available online [here](https://dotchain.github.io/demos/)
 
 ## CollabText
+
+The collab test can be run locally. Multiple browser and local clients can be used.
 
 Start the server:
 
@@ -32,3 +34,14 @@ go run collabtext/client/client.go -type counter
 ```
 
 Multiple counters can be started illustrating how synchronization works.
+
+Start a local http server:
+
+```sh
+$> cd collabtext/browser
+$> ln -s  ../../../../ github.com
+$> python -m SimpleHTTPServer 5001
+$> open http://localhost:5001
+```
+
+Note that the browser and the counter work on the same "document"

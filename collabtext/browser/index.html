@@ -9,13 +9,15 @@
       .editor {
         min-height: 2em;
         outline:  2px solid gray;
+        white-space: pre-wrap;
       }
     </style>
   </head>
   <div>
     <h2>Text Collaboration Demo</h2>
-    <p> Type your stuff here: </p>
+    <p> Type your stuff here and watch multiple sessions merge them properly: </p>
     <div contentEditable=true class="editor"></div>
+    <p> Note that the editor only supports limited edit operations. </p>
     <script src="editor.js"></script>
     <script src="browser.js"></script>
 </script>

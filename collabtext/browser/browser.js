@@ -8,7 +8,7 @@ class CollabEditable {
         this.node = node
         this.refresh(text, 0, 0)
         var done = (e) => this.setEditable(e);
-        var refresh = (text, start, end) => this.refresh(text, start, end);
+        var refresh = (e) => this.setEditable(e);
         var url
         if (window.location.hostname == "localhost" && window.location.search != "?remote") {
             url = "http://localhost:5000/api/"
@@ -17,14 +17,12 @@ class CollabEditable {
         }
         window.NewEditable(url, done, refresh)
     }
+
     setEditable(editable) {
         this.editable = editable
-    }
-    Insert(ch) {
-        this.editable.Insert(ch)
-    }
-    Delete() {
-        this.editable.Delete()
+        var start = editable.Start(true);
+        var end = editable.End(true);
+        this.refresh(editable.Value(), start[0], end[0])
     }
 
     refresh(text, start, end) {
@@ -46,11 +44,15 @@ class CollabEditable {
             r.setEnd(this.node, 0);
         } else {
             r.setStart(this.node.firstChild, this.start);
-            r.setEnd(this.node.firstChild, this.end);
+            r.setEnd(this.node.firstChild, this.start);
         }
 
         if (s.rangeCount == 0) {
             s.addRange(r);
+        }
+
+        if (this.start !=  this.end) {
+            s.extend(this.node.firstChild, this.end)
         }
     }
 }
@@ -63,12 +65,26 @@ function init() {
         e.preventDefault();
     });
     node.addEventListener("keyup", function(e) {
+        var code = e.code
+        if (e.altKey) {
+            code = "Alt" + e.code
+        }
+        if (e.shiftKey) {
+            code = "Shift" + e.code
+        }
+        if (e.ctrlKey) {
+            code = "Control" + e.code
+        }
         if (e.code.slice(0, 3) == "Key" || e.code.slice(0, 5) == "Digit") {
-            editable.Insert(e.key);
+            editable.editable.Insert(e.key);
         } else if (e.code == "Backspace") {
-            editable.Delete();
+            editable.editable.Delete();
+        } else if (e.code == "Space") {
+            editable.editable.Insert(" ")
+        } else if (editable.editable[code]) {
+            editable.editable[code]()
         } else {
-            console.log("Unknown code", e.code);
+            console.log("Unknown code", e.code, code);
         }
     });
 }

@@ -10,7 +10,6 @@ import (
 	"github.com/dotchain/dot/streams"
 	"github.com/dotchain/dot/streams/text"
 	"github.com/dotchain/dot/x/nw"
-	"github.com/dotchain/dot/x/types"
 	"github.com/gopherjs/gopherjs/js"
 	"log"
 	"math/rand"
@@ -20,7 +19,7 @@ import (
 // NewEditable asynchronously returns an interface which the browser
 // can use to send events to. The refresh method is called (also
 // asynchronously) in response to every update of local state.
-func NewEditable(url string, done func(map[string]interface{}), refresh func(text string, start, end int)) {
+func NewEditable(url string, done func(*js.Object), refresh func(*js.Object)) {
 	go func() {
 		client := &nw.Client{URL: url}
 		cache := &sync.Map{}
@@ -38,27 +37,13 @@ func NewEditable(url string, done func(map[string]interface{}), refresh func(tex
 			for v, _ := val.Next(); v != nil; v, _ = val.Next() {
 				val = v.(*text.Stream)
 			}
-			start, _ := val.E.Start()
-			end, _ := val.E.End()
-			text := types.S16(val.E.Text)
-			start, end = text.ToUTF16(start), text.ToUTF16(end)
-			log.Println("Value", val.E.Text, start, end)
-			refresh(val.E.Text, start, end)
+			start, _ := val.Start(true)
+			end, _ := val.End(true)
+			log.Println("Value", val.Value(), start, end)
+			refresh(js.MakeWrapper(val))
 		})
 
-		done(map[string]interface{}{
-			"Insert": func(s string) {
-				conn.Async.Run(func() {
-					val.Insert(s)
-				})
-			},
-			"Delete": func() {
-				conn.Async.Run(func() {
-					val.Delete()
-				})
-			},
-		})
-
+		done(js.MakeWrapper(val))
 		conn.Connect()
 	}()
 }
