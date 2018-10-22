@@ -17,17 +17,12 @@ class CollabEditable {
         }
         window.NewEditable(url, done, refresh)
     }
+
     setEditable(editable) {
         this.editable = editable
         var start = editable.Start(true);
         var end = editable.End(true);
         this.refresh(editable.Value(), start[0], end[0])
-    }
-    Insert(ch) {
-        this.editable.Insert(ch)
-    }
-    Delete() {
-        this.editable.Delete()
     }
 
     refresh(text, start, end) {
@@ -67,11 +62,13 @@ function init() {
     });
     node.addEventListener("keyup", function(e) {
         if (e.code.slice(0, 3) == "Key" || e.code.slice(0, 5) == "Digit") {
-            editable.Insert(e.key);
+            editable.editable.Insert(e.key);
         } else if (e.code == "Backspace") {
-            editable.Delete();
+            editable.editable.Delete();
         } else if (e.code == "Space") {
-            editable.Insert(" ")
+            editable.editable.Insert(" ")
+        } else if (editable.editable[e.code]) {
+            editable.editable[e.code]()
         } else {
             console.log("Unknown code", e.code);
         }
