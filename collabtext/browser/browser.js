@@ -44,11 +44,15 @@ class CollabEditable {
             r.setEnd(this.node, 0);
         } else {
             r.setStart(this.node.firstChild, this.start);
-            r.setEnd(this.node.firstChild, this.end);
+            r.setEnd(this.node.firstChild, this.start);
         }
 
         if (s.rangeCount == 0) {
             s.addRange(r);
+        }
+
+        if (this.start !=  this.end) {
+            s.extend(this.node.firstChild, this.end)
         }
     }
 }
@@ -61,16 +65,26 @@ function init() {
         e.preventDefault();
     });
     node.addEventListener("keyup", function(e) {
+        var code = e.code
+        if (e.altKey) {
+            code = "Alt" + e.code
+        }
+        if (e.shiftKey) {
+            code = "Shift" + e.code
+        }
+        if (e.ctrlKey) {
+            code = "Control" + e.code
+        }
         if (e.code.slice(0, 3) == "Key" || e.code.slice(0, 5) == "Digit") {
             editable.editable.Insert(e.key);
         } else if (e.code == "Backspace") {
             editable.editable.Delete();
         } else if (e.code == "Space") {
             editable.editable.Insert(" ")
-        } else if (editable.editable[e.code]) {
-            editable.editable[e.code]()
+        } else if (editable.editable[code]) {
+            editable.editable[code]()
         } else {
-            console.log("Unknown code", e.code);
+            console.log("Unknown code", e.code, code);
         }
     });
 }
