@@ -25,10 +25,9 @@ func NewEditable(url string, done func(*js.Object), refresh func(*js.Object)) {
 		cache := &sync.Map{}
 		tx := ops.TransformedWithCache(client, cache)
 		conn := ops.NewConnector(-1, nil, tx, rand.Float64)
-		val := text.StreamFromString("", false)
+		val := text.StreamFromString("", false).WithSessionID(ops.NewID())
 		val.S = conn.Async.Wrap(val.S)
-		wo := val.WithoutOwnCursor()
-		streams.Connect(conn.Stream, wo)
+		streams.Connect(conn.Stream, val)
 
 		// defer client.Close()
 		// defer conn.Disconnect()

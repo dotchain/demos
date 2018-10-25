@@ -50,10 +50,9 @@ func main() {
 func watch(client ops.Store, conn *ops.Connector) {
 	val := text.StreamFromString("", false)
 
-	stream := val.WithoutOwnCursor()
-	streams.Connect(conn.Stream, stream)
+	streams.Connect(conn.Stream, val)
 
-	stream.Nextf("key", func() {
+	val.Nextf("key", func() {
 		count := 0
 		for v, _ := val.Next(); v != nil; v, _ = val.Next() {
 			val = v.(*text.Stream)
@@ -70,10 +69,9 @@ func watch(client ops.Store, conn *ops.Connector) {
 }
 
 func count(client ops.Store, conn *ops.Connector) {
-	val := text.StreamFromString("", false)
+	val := text.StreamFromString("", false).WithSessionID(ops.NewID())
 
-	stream := val.WithoutOwnCursor()
-	streams.Connect(conn.Stream, stream)
+	streams.Connect(conn.Stream, val)
 
 	counter := 0
 	for {
