@@ -70,8 +70,7 @@ export class App extends React.PureComponent {
       if (done && hash === active.href || !done && hash === completed.href) {
         continue;
       }
-      const onDestroy = kk => todos.splice(kk, 1);
-      result.push(fn(todos.item(kk), onDestroy.bind(null, kk)));
+      result.push(fn(todos.item(kk)));
     }
     return result;
   }
@@ -101,7 +100,7 @@ export class App extends React.PureComponent {
       React.createElement(
         Items,
         {onToggleAll: () => this._onToggleAll(), active: this._count(todo => !todo.done)},
-        ...this._filtered((todo, onDestroy) => React.createElement(Item, {key: todo, todo, onDestroy}))
+        ...this._filtered(todo => React.createElement(Item, {key: todo, todo}))
       ),
       
       React.createElement(

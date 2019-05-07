@@ -41,15 +41,17 @@ export class Item extends React.Component {
   }
 
   _onSubmit() {
+    const {todo} =  this.props;
     const {editing} = this.state;
+
     if (editing) {
       const {value} = editing;
       const val = value.description.trim();
       if (val) {
-        this.props.todo.description().replace(val);
+        todo.description().replace(val);
         this.setState({editing: null});
       } else {
-        this.props.onDestroy();
+        todo.remove();
       }
     }
   }
@@ -71,7 +73,7 @@ export class Item extends React.Component {
   }
 
   render() {
-    const {todo, onDestroy} = this.props;
+    const {todo} = this.props;
     let {done, description} = todo.value;
     const  classes = [];
 
@@ -95,6 +97,7 @@ export class Item extends React.Component {
     const onSubmit = () => this._onSubmit();
     const onChange = e => this._onChange(e);
     const onKeyDown = e => this._onKeyDown(e);
+    const onDestroy = () => todo.remove();
     
     return React.createElement(
       "li",
