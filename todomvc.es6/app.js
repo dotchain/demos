@@ -36,12 +36,26 @@ export class App extends React.PureComponent {
     }
   }
 
-  onToggleAll(e) {
-    // use e.target.checked
+  _onToggleAll(e) {
+    const {todos} = this.props;
+    const count = todos.value.length;
+    for (let kk = 0; kk < count; kk ++) {
+      const item = todos.item(kk);
+      if (item.value.done !== e.target.checked) {
+        item.done().replace(e.target.checked);
+      }
+    }
   }
   
-  onClearCompleted() {
-    // what does this do?
+  _onClearCompleted() {
+    const {todos} = this.props;
+    const count = todos.value.length;
+    for (let kk = 0; kk < count; kk ++) {
+      const item = todos.item(kk);
+      if (item.value.done) {
+        item.remove();
+      }
+    }    
   }
 
   _count(filter) {
@@ -99,7 +113,7 @@ export class App extends React.PureComponent {
 
       React.createElement(
         Items,
-        {onToggleAll: () => this._onToggleAll(), active: this._count(todo => !todo.done)},
+        {onToggleAll: e => this._onToggleAll(e), active: this._count(todo => !todo.done)},
         ...this._filtered(todo => React.createElement(Item, {key: todo, todo}))
       ),
       
@@ -110,7 +124,7 @@ export class App extends React.PureComponent {
           completed: this._count(todo => todo.done),
           routes: [all, active, completed],
           selected: this._selected(),
-          onClearCompleted: () => this.onClearCompleted()
+          onClearCompleted: () => this._onClearCompleted()
         }
       )
     );
